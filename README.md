@@ -1,4 +1,4 @@
-# 德州撲克 P2P
+# 蘆洲撲克
 
 純前端、無後端、無帳號的德州撲克。最多 8 人同房間，透過 [PeerJS](https://peerjs.com/) 做瀏覽器對瀏覽器的 P2P 連線（架構沿用自 battleship 專案的 `net.js`）。
 
