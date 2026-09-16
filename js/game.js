@@ -1,6 +1,6 @@
 // Host 權威式德州撲克引擎。只有 host 執行這個檔案裡的邏輯；
 // guest 只送 action/sit 請求給 host，畫面完全依賴 host 廣播回來的 state。
-import { freshDeck } from './deck.js';
+import { freshDeck, cardLabel } from './deck.js';
 import { evaluateBest, compareBest, describe } from './handeval.js';
 
 const SEAT_COUNT = 8;
@@ -341,7 +341,8 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     }
 
     for (const r of revealed) {
-      pushLog(`${r.name} 攤牌：${r.cards.join(' ')}（${describe(r.best.score)}）`);
+      const handCards = r.best.cards.map(cardLabel).join(' ');
+      pushLog(`${r.name} 攤牌：${r.cards.map(cardLabel).join(' ')} → 最佳 5 張：${handCards}（${describe(r.best.score)}）`);
     }
     for (const r of results) {
       pushLog(`💰 ${r.winners.join('、')} 贏得 ${r.amount}（${r.handName}）`);
