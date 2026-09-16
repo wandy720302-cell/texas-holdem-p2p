@@ -26,6 +26,30 @@ $('#rulesBtn').onclick = openRules;
 $('#rulesBtn2').onclick = openRules;
 $('#closeRules').onclick = closeRules;
 
+// ---------- 計分板 ----------
+$('#scoreboardBtn').onclick = () => { renderScoreboard(); $('#scoreboardModal').classList.remove('hidden'); };
+$('#closeScoreboard').onclick = () => $('#scoreboardModal').classList.add('hidden');
+
+function renderScoreboard() {
+  const body = $('#scoreboardBody');
+  const list = currentState?.scoreboard || [];
+  if (list.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);">還沒有人玩過</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map((r, idx) => {
+    const cls = r.net > 0 ? 'pos' : r.net < 0 ? 'neg' : '';
+    const sign = r.net > 0 ? '+' : '';
+    const offline = !r.connected ? ' <span class="offline">（已離線）</span>' : !r.seated ? ' <span class="offline">（觀戰中）</span>' : '';
+    return `<tr>
+      <td>${idx + 1}</td>
+      <td>${escapeHtml(r.name)}${offline}</td>
+      <td>${r.chips}</td>
+      <td class="${cls}">${sign}${r.net}</td>
+    </tr>`;
+  }).join('');
+}
+
 // ---------- 建房 / 加入 ----------
 $('#createBtn').onclick = async () => {
   myName = $('#nameInput').value.trim() || '玩家';
@@ -298,6 +322,7 @@ function render() {
   }
 
   updateBossHud(myTurn, mySeatInfo, s);
+  if (!$('#scoreboardModal').classList.contains('hidden')) renderScoreboard();
 }
 
 // 每半秒重繪一次，純粹是為了讓倒數計時的秒數會跳動；遊戲狀態本身沒有變，

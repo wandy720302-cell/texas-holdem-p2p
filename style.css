@@ -232,6 +232,15 @@ button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
 .modal-box h3 { margin: 16px 0 6px; color: var(--accent); }
 .modal-box ul { margin: 0; padding-left: 20px; font-size: .88rem; line-height: 1.6; }
 
+.score-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.score-table th, .score-table td { padding: 7px 8px; text-align: right; border-bottom: 1px solid #263a2f; }
+.score-table th:first-child, .score-table td:first-child { text-align: center; width: 28px; }
+.score-table th:nth-child(2), .score-table td:nth-child(2) { text-align: left; }
+.score-table th { color: var(--muted); font-weight: 600; }
+.score-table .pos { color: #6fcf97; font-weight: 700; }
+.score-table .neg { color: #e0685a; font-weight: 700; }
+.score-table .offline { color: var(--muted); font-size: .85em; }
+
 @media (max-width: 360px) {
   .seat .zm { display: none; } /* 空間太小，子母車數字先讓給籌碼顯示 */
   .card-panel { padding: 20px 16px; }

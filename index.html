@@ -38,7 +38,10 @@
   <header class="topbar">
     <div>房間代號：<b id="roomCodeLabel">-</b> <button id="copyCodeBtn" class="tiny">複製</button></div>
     <div id="handInfo">等待開局</div>
-    <button id="rulesBtn2" class="tiny">規則</button>
+    <div>
+      <button id="scoreboardBtn" class="tiny">📊 計分板</button>
+      <button id="rulesBtn2" class="tiny">規則</button>
+    </div>
   </header>
 
   <div class="table-wrap">
@@ -115,6 +118,18 @@
       </ul>
     </div>
     <button id="closeRules" class="primary">關閉</button>
+  </div>
+</div>
+
+<div id="scoreboardModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>📊 計分板</h2>
+    <p class="sub" style="margin:0 0 14px;">淨輸贏 = 目前籌碼 − 累計買入（歸零重買會多算一次起始籌碼）</p>
+    <table class="score-table">
+      <thead><tr><th>#</th><th>玩家</th><th>目前籌碼</th><th>淨輸贏</th></tr></thead>
+      <tbody id="scoreboardBody"></tbody>
+    </table>
+    <button id="closeScoreboard" class="primary" style="margin-top:16px;">關閉</button>
   </div>
 </div>
 

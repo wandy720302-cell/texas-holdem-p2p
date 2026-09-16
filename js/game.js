@@ -44,7 +44,12 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       id, name, seat: null, chips: START_CHIPS, zimuche: 0, zimucheGranted: false,
       spectating: true, holeCards: [], folded: false, allIn: false,
       committed: 0, totalCommitted: 0, hasActed: false, inHand: false, connected: true,
+      buyIns: 1, // 每次歸零重買都 +1，淨輸贏 = 目前籌碼 - buyIns*起始籌碼
     };
+  }
+
+  function netScore(p) {
+    return p.chips - p.buyIns * START_CHIPS;
   }
 
   function ensurePlayer(id, name) {
@@ -113,7 +118,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
   function sit(id, name, seat) {
     const p = ensurePlayer(id, name);
     if (seats[seat] || p.seat !== null) return;
-    if (p.chips <= 0) p.chips = START_CHIPS;
+    if (p.chips <= 0) { p.chips = START_CHIPS; p.buyIns++; }
     seats[seat] = id;
     p.seat = seat;
     p.spectating = false;
@@ -459,6 +464,9 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       spectators: [...players.values()].filter(p => p.spectating).map(p => ({ id: p.id, name: p.name })),
       canStart: canStart(),
       lobbyCountdownEndsAt, turnDeadlineAt, starterAuthorityId: lastWinnerId,
+      scoreboard: [...players.values()]
+        .map(p => ({ id: p.id, name: p.name, chips: p.chips, net: netScore(p), seated: p.seat !== null, connected: p.connected }))
+        .sort((a, b) => b.net - a.net),
       ...extra,
     };
   }
