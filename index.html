@@ -39,10 +39,25 @@
     <div>房間代號：<b id="roomCodeLabel">-</b> <button id="copyCodeBtn" class="tiny">複製</button></div>
     <div id="handInfo">等待開局</div>
     <div>
+      <button id="tvToggle" class="tiny">📺 電視</button>
       <button id="scoreboardBtn" class="tiny">📊 計分板</button>
       <button id="rulesBtn2" class="tiny">規則</button>
     </div>
   </header>
+
+  <div id="tvPanel" class="tv-panel hidden">
+    <div class="tv-head">
+      <span>📺 大家一起看</span>
+      <button id="tvClose" class="tiny">✕</button>
+    </div>
+    <div class="tv-screen" id="tvScreen">
+      <div class="tv-empty">還沒有人放影片，貼個 YouTube 連結上來吧</div>
+    </div>
+    <div class="tv-controls">
+      <input id="tvUrlInput" type="text" placeholder="貼上 YouTube 連結…">
+      <button id="tvPlayBtn" class="tiny">播放</button>
+    </div>
+  </div>
 
   <div class="table-wrap">
     <div id="pokerTable" class="poker-table">

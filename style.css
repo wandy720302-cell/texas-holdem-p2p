@@ -244,6 +244,39 @@ button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
 .score-table .neg { color: #e0685a; font-weight: 700; }
 .score-table .offline { color: var(--muted); font-size: .85em; }
 
+/* ---------- 電視：大家一起看 YouTube ---------- */
+.tv-panel {
+  width: min(94vw, 480px); margin: 8px auto 0; background: var(--panel);
+  border: 1px solid #263a2f; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 14px 30px rgba(0,0,0,.4); z-index: 8;
+}
+.tv-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: var(--panel-hi); font-size: .8rem; font-weight: 700;
+}
+.tv-screen {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+.tv-screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.tv-empty { color: var(--muted); font-size: .78rem; text-align: center; padding: 0 20px; }
+.tv-unmute {
+  position: absolute; inset: 0; background: rgba(0,0,0,.45); border: none; color: #fff;
+  font-size: .9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.tv-controls { display: flex; gap: 6px; padding: 8px 10px; }
+.tv-controls input {
+  flex: 1; padding: 7px 10px; border-radius: 8px; border: 1px solid #2a3830;
+  background: #0f1815; color: var(--text); font-size: .8rem;
+}
+
+@media (min-width: 900px) {
+  .tv-panel {
+    position: fixed; top: 70px; right: 16px; width: 320px; margin: 0;
+    max-height: calc(100vh - 90px); overflow-y: auto;
+  }
+}
+
 @media (max-width: 360px) {
   .seat .zm { display: none; } /* 空間太小，子母車數字先讓給籌碼顯示 */
   .card-panel { padding: 20px 16px; }

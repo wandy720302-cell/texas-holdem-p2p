@@ -114,6 +114,7 @@ function onStatus(status) {
 
 function onMessage(envelope) {
   if (envelope.type === 'sticker') { showStickerToast(envelope.__name || '?', envelope.file); return; }
+  if (envelope.type === 'tv') { applyTv(envelope.videoId, envelope.startedAt, envelope.__name || '?'); return; }
   if (isHost) {
     if (!game) return;
     switch (envelope.type) {
@@ -395,6 +396,48 @@ function showStickerToast(name, file) {
   el.innerHTML = `<img src="assets/stickers/${file}" alt=""><span>${escapeHtml(name)}</span>`;
   toasts.appendChild(el);
   setTimeout(() => el.remove(), 2500);
+}
+
+// ---------- 電視：大家一起看 YouTube ----------
+// 只做「貼連結廣播，各自載入播放」，不做暫停/拖曳進度同步（那個要接 YouTube IFrame API，工程量大很多）。
+function parseYoutubeId(url) {
+  const patterns = [
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|live\/|watch\?v=|watch\?.*&v=))([\w-]{11})/,
+  ];
+  for (const re of patterns) {
+    const m = String(url).match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+$('#tvToggle').onclick = () => $('#tvPanel').classList.toggle('hidden');
+$('#tvClose').onclick = () => $('#tvPanel').classList.add('hidden');
+
+$('#tvPlayBtn').onclick = () => {
+  const url = $('#tvUrlInput').value.trim();
+  const videoId = parseYoutubeId(url);
+  if (!videoId) { alert('看不出來這是 YouTube 連結耶，再檢查一下'); return; }
+  $('#tvUrlInput').value = '';
+  const startedAt = Date.now();
+  applyTv(videoId, startedAt, myName);
+  net?.send({ type: 'tv', videoId, startedAt });
+};
+
+function applyTv(videoId, startedAt, byName) {
+  $('#tvPanel').classList.remove('hidden');
+  const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+  const screen = $('#tvScreen');
+  screen.innerHTML = `
+    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&start=${elapsed}&playsinline=1&rel=0"
+      allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    <button class="tv-unmute" id="tvUnmute">🔊 點我取消靜音</button>
+  `;
+  $('#tvUnmute').onclick = () => {
+    const freshElapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    screen.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&start=${freshElapsed}&playsinline=1&rel=0"
+      allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+  };
 }
 
 function escapeHtml(str) {
