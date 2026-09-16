@@ -132,6 +132,10 @@ button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
 .controls { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 0 10px 8px; max-width: 100vw; }
 .controls .act { min-width: 56px; padding: 6px 10px; font-size: clamp(.7rem, 2.2vw, .82rem); }
 .controls input { width: 78px; padding: 6px 8px; }
+.controls .allin {
+  background: linear-gradient(180deg, #e05b4c, #b8321f); color: #fff; font-weight: 700;
+  box-shadow: 0 4px 14px rgba(184,50,31,.35);
+}
 .zimuche-row {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
   font-size: .72rem; color: #7bd3c2; margin-top: 2px; flex-wrap: wrap; text-align: center;
@@ -145,6 +149,32 @@ button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
   border-radius: 8px; padding: 6px 10px; font-size: .7rem; color: var(--muted);
 }
 .log div { padding: 1px 0; }
+
+.sticker-bar { position: relative; }
+.sticker-panel {
+  position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+  background: var(--panel); border: 1px solid #2a3830; border-radius: 10px;
+  padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  width: max(220px, 60vw); max-width: 320px; max-height: 220px; overflow-y: auto;
+  box-shadow: 0 10px 24px rgba(0,0,0,.4); z-index: 5;
+}
+.sticker-panel button {
+  padding: 4px; background: #0f1815; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+}
+.sticker-panel img { width: 100%; height: 44px; object-fit: contain; }
+.sticker-panel .empty-hint { grid-column: 1 / -1; color: var(--muted); font-size: .72rem; text-align: center; padding: 8px 2px; }
+
+.sticker-toasts {
+  position: fixed; right: 10px; bottom: 10px; display: flex; flex-direction: column-reverse; gap: 6px;
+  pointer-events: none; z-index: 20;
+}
+.sticker-toast {
+  background: var(--panel); border: 1px solid #2a3830; border-radius: 10px; padding: 6px 10px;
+  display: flex; align-items: center; gap: 8px; font-size: .72rem; box-shadow: 0 6px 16px rgba(0,0,0,.4);
+  animation: sticker-in .2s ease-out;
+}
+.sticker-toast img { width: 40px; height: 40px; object-fit: contain; }
+@keyframes sticker-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 .modal {
   position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex;

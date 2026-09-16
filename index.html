@@ -57,6 +57,7 @@
     <button id="callBtn" class="act">跟注</button>
     <input id="betAmount" type="number" min="0" step="10">
     <button id="betBtn" class="act primary">下注/加注</button>
+    <button id="allinBtn" class="act allin">全下</button>
     <div id="zimucheRow" class="zimuche-row hidden">
       <label>用子母車支付（1個=100）</label>
       <input id="zimucheInput" type="number" min="0" step="1" value="0">
@@ -66,8 +67,14 @@
   <div class="bottom-row">
     <div id="seatControls"></div>
     <button id="startHandBtn" class="primary hidden">開始這一手</button>
+    <div class="sticker-bar">
+      <button id="stickerToggle" class="tiny">😀 貼圖</button>
+      <div id="stickerPanel" class="sticker-panel hidden"></div>
+    </div>
     <div id="log" class="log"></div>
   </div>
+
+  <div id="stickerToasts" class="sticker-toasts"></div>
 </div>
 
 <div id="rulesModal" class="modal hidden">
@@ -82,7 +89,7 @@
         <li>河牌下注結束後攤牌，用自己的 2 張底牌 + 5 張公共牌中最好的 5 張組成牌型比大小</li>
         <li>牌型大小：同花順 &gt; 四條 &gt; 葫蘆 &gt; 同花 &gt; 順子 &gt; 三條 &gt; 兩對 &gt; 一對 &gt; 高牌</li>
         <li>小盲注 50、大盲注 100，每人初始籌碼 10,000</li>
-        <li>支援多人全下（All-in）自動計算邊池</li>
+        <li>支援多人全下（All-in）自動計算邊池，有專用「全下」按鈕一鍵梭哈</li>
       </ul>
       <h3>💰 希銘的子母車</h3>
       <ul>

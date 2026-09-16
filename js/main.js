@@ -87,6 +87,7 @@ function onStatus(status) {
 }
 
 function onMessage(envelope) {
+  if (envelope.type === 'sticker') { showStickerToast(envelope.__name || '?', envelope.file); return; }
   if (isHost) {
     if (!game) return;
     switch (envelope.type) {
@@ -264,6 +265,62 @@ $('#betBtn').onclick = () => {
   const amount = Number($('#betAmount').value);
   if (amount > 0) submitAction(currentState.currentBet > 0 ? 'raise' : 'bet', amount, zimucheWanted());
 };
+$('#allinBtn').onclick = () => {
+  if (!currentState) return;
+  const mySeatInfo = currentState.seats.find(sec => sec?.id === myId);
+  if (!mySeatInfo) return;
+  const allInTarget = mySeatInfo.chips + mySeatInfo.committed + mySeatInfo.zimuche * 100;
+  if (allInTarget > currentState.currentBet) {
+    submitAction(currentState.currentBet > 0 ? 'raise' : 'bet', allInTarget, mySeatInfo.zimuche);
+  } else {
+    submitAction('call', 0, mySeatInfo.zimuche);
+  }
+};
+
+// ---------- 貼圖 ----------
+let stickerList = [];
+fetch('assets/stickers/manifest.json').then(r => r.ok ? r.json() : []).then(list => {
+  stickerList = Array.isArray(list) ? list : [];
+  renderStickerPanel();
+}).catch(() => { stickerList = []; renderStickerPanel(); });
+
+function renderStickerPanel() {
+  const panel = $('#stickerPanel');
+  if (stickerList.length === 0) {
+    panel.innerHTML = '<div class="empty-hint">還沒有貼圖，把圖片丟進 assets/stickers/ 資料夾</div>';
+    return;
+  }
+  panel.innerHTML = '';
+  for (const file of stickerList) {
+    const btn = document.createElement('button');
+    const img = document.createElement('img');
+    img.src = `assets/stickers/${file}`;
+    img.alt = file;
+    btn.appendChild(img);
+    btn.onclick = () => { sendSticker(file); $('#stickerPanel').classList.add('hidden'); };
+    panel.appendChild(btn);
+  }
+}
+
+$('#stickerToggle').onclick = () => $('#stickerPanel').classList.toggle('hidden');
+document.addEventListener('click', e => {
+  const bar = $('.sticker-bar');
+  if (bar && !bar.contains(e.target)) $('#stickerPanel').classList.add('hidden');
+});
+
+function sendSticker(file) {
+  showStickerToast(myName, file);
+  net?.send({ type: 'sticker', file });
+}
+
+function showStickerToast(name, file) {
+  const toasts = $('#stickerToasts');
+  const el = document.createElement('div');
+  el.className = 'sticker-toast';
+  el.innerHTML = `<img src="assets/stickers/${file}" alt=""><span>${escapeHtml(name)}</span>`;
+  toasts.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
