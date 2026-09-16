@@ -249,6 +249,8 @@ function render() {
   const logEl = $('#log');
   logEl.innerHTML = s.log.map(l => `<div>${escapeHtml(l)}</div>`).join('');
   logEl.scrollTop = logEl.scrollHeight;
+
+  updateBossHud(myTurn, mySeatInfo, s);
 }
 
 function zimucheWanted() {
@@ -316,3 +318,27 @@ function setBoss(on) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') setBoss(!bossOn);
 });
+
+// 偽裝的兩顆動作鍵（棄牌／跟注-過牌），讓你不用離開假報表也能應付基本狀況。
+// 下注/加注需要輸入金額，偽裝介面塞不下、也容易穿幫，那種情況還是得按 Esc 出來操作。
+function updateBossHud(myTurn, mySeatInfo, s) {
+  $('#bossDot').classList.toggle('hidden', !myTurn);
+  const pot = s?.pot ?? 0;
+  $('#bossStatusText').textContent = `工作表 1｜儲存格總和：${pot}`;
+  $('#bossFold').disabled = !myTurn;
+  $('#bossCall').disabled = !myTurn;
+  if (myTurn) {
+    const toCall = s.currentBet - mySeatInfo.committed;
+    $('#bossCall').textContent = toCall > 0 ? '✓' : '⏭';
+    $('#bossCall').title = toCall > 0 ? `核取儲存格（跟注 ${toCall}）` : '核取儲存格（過牌）';
+  }
+}
+
+$('#bossFold').onclick = () => submitAction('fold');
+$('#bossCall').onclick = () => {
+  if (!currentState) return;
+  const mySeatInfo = currentState.seats.find(sec => sec?.id === myId);
+  if (!mySeatInfo) return;
+  const toCall = currentState.currentBet - mySeatInfo.committed;
+  submitAction(toCall > 0 ? 'call' : 'check');
+};

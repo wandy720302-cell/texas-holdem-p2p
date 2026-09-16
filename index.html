@@ -91,6 +91,12 @@
         <li>下注/跟注/加注時可以拿子母車折抵，但下注時只算 100 一個——花掉會虧 68，這是故意設計的，逼你思考要不要動用存貨</li>
         <li>子母車一旦下注花掉就是花掉了，贏回來的錢是一般籌碼，不會拿回子母車</li>
       </ul>
+      <h3>🕵️ 老闆鍵</h3>
+      <ul>
+        <li>按 <b>Esc</b> 瞬間切換成假的 Excel 報表畫面（標籤頁標題、favicon 也會一起換），再按一次 Esc 切回來，底層牌局不會中斷</li>
+        <li>假報表最下面那條深綠色狀態列裡，有兩個不起眼的小按鈕：<b>↺</b> 是棄牌、<b>✓</b> 是跟注/過牌，輪到你時旁邊會有一顆小黃點提示</li>
+        <li>下注/加注需要輸入金額，偽裝介面放不下，那種狀況還是得按 Esc 出來操作</li>
+      </ul>
       <h3>房間與連線</h3>
       <ul>
         <li>純 P2P 連線，不經過任何伺服器儲存資料，關掉分頁資料就會消失</li>
@@ -112,6 +118,14 @@
   </div>
   <div class="boss-sheet">
     <table id="bossTable"></table>
+  </div>
+  <div class="boss-status">
+    <span id="bossStatusText">工作表 1｜就緒</span>
+    <span id="bossDot" class="boss-dot hidden" title="有未儲存的變更"></span>
+    <div class="boss-fakebtns">
+      <button id="bossFold" class="boss-fakebtn" title="復原">↺</button>
+      <button id="bossCall" class="boss-fakebtn" title="核取儲存格">✓</button>
+    </div>
   </div>
 </div>
 

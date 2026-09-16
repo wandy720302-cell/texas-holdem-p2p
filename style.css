@@ -189,3 +189,19 @@ button:disabled { opacity: .35; cursor: not-allowed; filter: none; }
 }
 #bossTable th { background: #eef3ee; text-align: center; color: #333; }
 #bossTable td:first-child, #bossTable th:first-child { text-align: left; }
+
+.boss-status {
+  background: #106e3c; color: #e8f5ee; padding: 3px 14px; font-size: .72rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.boss-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #ffd54a;
+  box-shadow: 0 0 4px #ffd54a; animation: boss-pulse 1s infinite ease-in-out;
+}
+@keyframes boss-pulse { 50% { opacity: .3; } }
+.boss-fakebtns { margin-left: auto; display: flex; gap: 8px; }
+.boss-fakebtn {
+  background: transparent; border: 1px solid rgba(255,255,255,.35); color: #fff;
+  padding: 1px 8px; font-size: .78rem; border-radius: 4px; line-height: 1.5;
+}
+.boss-fakebtn:hover { background: rgba(255,255,255,.12); }
