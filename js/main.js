@@ -185,6 +185,7 @@ function render() {
       const status = p.allIn ? '（全下）' : p.folded ? '（棄牌）' : !p.connected ? '（斷線）' : '';
       div.innerHTML = `
         ${dealerMark}
+        <div class="avatar" style="background:${avatarColor(p.name)}">${initials(p.name)}</div>
         <div class="nm">${escapeHtml(p.name)} ${status}</div>
         <div class="chips">💰 ${p.chips}</div>
         ${zm}
@@ -265,3 +266,53 @@ $('#betBtn').onclick = () => {
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+function initials(name) {
+  const s = String(name).trim();
+  return s.slice(0, 1).toUpperCase() || '?';
+}
+function avatarColor(name) {
+  let hash = 0;
+  for (const ch of String(name)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  const hue = hash % 360;
+  return `hsl(${hue} 65% 62%)`;
+}
+
+// ---------- 老闆鍵：Esc 切換成假裝在做 Excel 報表 ----------
+const BOSS_ROWS = ['業績目標', '實際達成', '差異分析', '客戶滿意度', '成本控管', '專案進度', '人力配置', '下季預測'];
+const bossOverlay = $('#bossOverlay');
+const bossTable = $('#bossTable');
+let bossOn = false;
+let bossTick = null;
+const originalTitle = document.title;
+const originalFavicon = $('#favicon').href;
+
+function bossRandomCell() { return (Math.random() * 900000 + 100000).toFixed(0); }
+
+function renderBossTable() {
+  const months = ['1月', '2月', '3月', '4月', '5月', '6月'];
+  let html = '<tr><th>項目</th>' + months.map(m => `<th>${m}</th>`).join('') + '</tr>';
+  for (const row of BOSS_ROWS) {
+    html += `<tr><td>${row}</td>` + months.map(() => `<td>${bossRandomCell()}</td>`).join('') + '</tr>';
+  }
+  bossTable.innerHTML = html;
+}
+
+function setBoss(on) {
+  bossOn = on;
+  bossOverlay.classList.toggle('hidden', !on);
+  if (on) {
+    renderBossTable();
+    document.title = 'Q3業績分析報表.xlsx - Excel';
+    $('#favicon').href = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%23106e3c'/%3E%3Ctext x='50' y='66' font-size='46' text-anchor='middle' fill='%23fff' font-family='Arial'%3EX%3C/text%3E%3C/svg%3E";
+    bossTick = setInterval(renderBossTable, 4000);
+  } else {
+    document.title = originalTitle;
+    $('#favicon').href = originalFavicon;
+    clearInterval(bossTick);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') setBoss(!bossOn);
+});

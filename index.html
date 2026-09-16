@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>德州撲克 P2P</title>
+<title id="pageTitle">德州撲克 P2P</title>
+<link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230b3d2e' stroke='%23d4af37' stroke-width='6'/%3E%3Ctext x='50' y='66' font-size='54' text-anchor='middle' fill='%23d4af37'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -98,6 +99,19 @@
       </ul>
     </div>
     <button id="closeRules" class="primary">關閉</button>
+  </div>
+</div>
+
+<div id="bossOverlay" class="boss-overlay hidden">
+  <div class="boss-ribbon">
+    <span class="boss-app">📊 Q3業績分析報表.xlsx － Excel</span>
+    <span class="boss-hint">按 Esc 返回</span>
+  </div>
+  <div class="boss-toolbar">
+    <span>檔案</span><span>常用</span><span>插入</span><span>版面配置</span><span>公式</span><span>資料</span><span>校閱</span><span>檢視</span>
+  </div>
+  <div class="boss-sheet">
+    <table id="bossTable"></table>
   </div>
 </div>
 
