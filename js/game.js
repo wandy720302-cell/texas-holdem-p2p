@@ -222,12 +222,14 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       if (!isAllIn && raiseSize < minRaise) return; // 不足最小加注量且不是全下
       const { paid, tokensUsed } = spend(p, need, zimucheUsed);
       p.committed += paid; p.totalCommitted += paid; pot += paid;
-      if (raiseSize > 0) minRaise = raiseSize;
       currentBet = Math.max(currentBet, p.committed);
       if (p.chips === 0 && p.zimuche === 0) p.allIn = true;
-      // 加注重新開放行動權：其他未蓋牌未全下玩家的 hasActed 重置
-      for (const other of notFolded()) {
-        if (other.id !== p.id && !other.allIn) other.hasActed = false;
+      // 只有「足額加注」才重新開放行動權；不足最小加注量的全下只能逼其他人跟注/棄牌，不能讓他們重新加注
+      if (raiseSize >= minRaise) {
+        minRaise = raiseSize;
+        for (const other of notFolded()) {
+          if (other.id !== p.id && !other.allIn) other.hasActed = false;
+        }
       }
       const tokenNote = tokensUsed > 0 ? `（含 ${tokensUsed} 個子母車）` : '';
       pushLog(`${p.name} ${action === 'bet' ? '下注' : '加注到'} ${p.committed}${tokenNote}${p.allIn ? '（全下）' : ''}`);
@@ -327,9 +329,12 @@ export function createGame({ onState, onPrivateCards, onLog }) {
         if (cmp > 0) winners = [r];
         else if (cmp === 0) winners.push(r);
       }
+      // 除不盡的零頭籌碼照規則給「莊家位置順時鐘方向最近」的贏家
+      const seatsFromButton = w => (w.seat - dealerSeat - 1 + SEAT_COUNT) % SEAT_COUNT;
+      const ordered = [...winners].sort((a, b) => seatsFromButton(a) - seatsFromButton(b));
       const share = Math.floor(potTier.amount / winners.length);
       const remainder = potTier.amount - share * winners.length;
-      winners.forEach((w, idx) => {
+      ordered.forEach((w, idx) => {
         const p = players.get(w.id);
         p.chips += share + (idx === 0 ? remainder : 0);
       });
