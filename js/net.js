@@ -145,7 +145,9 @@ export function createNet({ onMessage, onStatus, onPeersChanged }) {
       wireConn(conn);
       onStatus?.({ kind: 'joining', code: state.code });
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('連線逾時，房間可能不存在或房主已離線')), 15000);
+        const timer = setTimeout(() => reject(new Error(
+          '連線逾時。房間代號打錯、房主已離線、或是雙方網路環境擋住了 P2P 連線（例如一邊用行動數據）都可能造成這個結果，建議先在同一個 WiFi 下測試排除網路問題'
+        )), 30000);
         conn.on('open', () => { clearTimeout(timer); resolve(); });
         conn.on('error', err => { clearTimeout(timer); reject(err); });
       });
