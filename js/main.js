@@ -342,10 +342,10 @@ function sendSticker(file) {
 function showStickerToast(name, file) {
   const toasts = $('#stickerToasts');
   const el = document.createElement('div');
-  el.className = 'sticker-toast';
+  el.className = 'sticker-pop';
   el.innerHTML = `<img src="assets/stickers/${file}" alt=""><span>${escapeHtml(name)}</span>`;
   toasts.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+  setTimeout(() => el.remove(), 2500);
 }
 
 function escapeHtml(str) {
