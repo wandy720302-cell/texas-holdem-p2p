@@ -17,6 +17,7 @@ let currentState = null;
 let myHoleCards = [];
 let lastPhase = 'lobby';
 let lastLogSignature = '';
+let lastRevealedHandNumber = null;
 
 // ---------- 規則彈窗 ----------
 function openRules() { $('#rulesModal').classList.remove('hidden'); }
@@ -136,6 +137,10 @@ function cardEl(card, faceUp = true) {
   return el;
 }
 
+function cardHtml(card) {
+  return `<div class="card mini${isRed(card) ? ' red' : ''}">${cardLabel(card)}</div>`;
+}
+
 function renderMyCards() {
   const box = $('#myCards');
   box.innerHTML = '';
@@ -171,6 +176,10 @@ function render() {
   const mySeatInfo = s.seats.find(sec => sec?.id === myId);
   const iAmSeated = !!mySeatInfo;
 
+  const revealMap = new Map((s.showdownReveal || []).map(r => [r.seat, r]));
+  const isFreshReveal = !!(s.showdownReveal && s.handNumber !== lastRevealedHandNumber);
+  if (s.showdownReveal) lastRevealedHandNumber = s.handNumber;
+
   for (let i = 0; i < 8; i++) {
     const p = s.seats[i];
     const div = document.createElement('div');
@@ -186,6 +195,8 @@ function render() {
     } else {
       if (i === s.turnSeat) div.classList.add('turn');
       if (p.folded) div.classList.add('folded');
+      const reveal = revealMap.get(i);
+      if (reveal?.wonAmount > 0) div.classList.add('seat-winner');
       const zm = p.zimuche > 0 ? `<div class="zm">🚗 子母車 ×${p.zimuche}（值 ${p.zimuche * ZIMUCHE_VALUE}）</div>` : '';
       const betChip = p.committed > 0 ? `<div class="bet-chip">${p.committed}</div>` : '';
       const dealerMark = i === s.dealerSeat ? '<div class="dealer-btn">D</div>' : '';
@@ -195,11 +206,24 @@ function render() {
         const secs = Math.max(0, Math.ceil((s.turnDeadlineAt - Date.now()) / 1000));
         turnTimerHtml = `<div class="turn-timer">⏱ ${secs}s</div>`;
       }
+      let revealHtml = '';
+      if (reveal) {
+        const flipClass = isFreshReveal ? ' flip-in' : '';
+        const cardsHtml = reveal.cards.map((c, idx) =>
+          `<span class="${flipClass.trim()}" style="animation-delay:${idx * 120}ms">${cardHtml(c)}</span>`).join('');
+        const winBadge = reveal.wonAmount > 0 ? `<div class="win-badge">🏆 +${reveal.wonAmount}</div>` : '';
+        revealHtml = `
+          <div class="reveal-cards">${cardsHtml}</div>
+          <div class="reveal-hand">${escapeHtml(reveal.hand)}</div>
+          ${winBadge}
+        `;
+      }
       div.innerHTML = `
         ${dealerMark}
         <div class="avatar" style="background:${avatarColor(p.name)}">${initials(p.name)}</div>
         <div class="nm">${escapeHtml(p.name)} ${status}</div>
         <div class="chips">💰 ${p.chips}</div>
+        ${revealHtml}
         ${zm}
         ${betChip}
         ${turnTimerHtml}

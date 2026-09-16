@@ -372,6 +372,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       best: evaluateBest([...p.holeCards, ...community]),
     }));
     const results = [];
+    const wonBySeat = new Map();
 
     for (const [tierIndex, potTier] of pots.entries()) {
       const eligible = revealed.filter(r => potTier.eligible.some(e => e.id === r.id));
@@ -388,8 +389,10 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       const share = Math.floor(potTier.amount / winners.length);
       const remainder = potTier.amount - share * winners.length;
       ordered.forEach((w, idx) => {
+        const won = share + (idx === 0 ? remainder : 0);
         const p = players.get(w.id);
-        p.chips += share + (idx === 0 ? remainder : 0);
+        p.chips += won;
+        wonBySeat.set(w.seat, (wonBySeat.get(w.seat) || 0) + won);
       });
       if (tierIndex === 0) lastWinnerId = ordered[0].id; // 主池贏家拿到開下一手的權限
       results.push({
@@ -409,7 +412,12 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     for (const p of notFolded()) grantZimucheIfNeeded(p);
 
     pot = 0;
-    broadcast({ showdownReveal: revealed.map(r => ({ seat: r.seat, cards: r.cards, hand: describe(r.best.score) })) });
+    broadcast({
+      showdownReveal: revealed.map(r => ({
+        seat: r.seat, cards: r.cards, hand: describe(r.best.score),
+        wonAmount: wonBySeat.get(r.seat) || 0,
+      })),
+    });
     endHand();
   }
 
