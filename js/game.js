@@ -11,6 +11,8 @@ const ZIMUCHE_THRESHOLD = 10001;
 const ZIMUCHE_GRANT = 5;
 export const ZIMUCHE_VALUE = 168;   // 持有時的紀念價值
 export const ZIMUCHE_BET_VALUE = 100; // 拿來下注時只值這個價（花掉會虧，這是故意的）
+const AUTO_START_MS = 10000;
+const TURN_TIMEOUT_MS = 10000;
 
 export function createGame({ onState, onPrivateCards, onLog }) {
   const players = new Map(); // id -> player
@@ -25,6 +27,11 @@ export function createGame({ onState, onPrivateCards, onLog }) {
   let minRaise = BB;
   let handNumber = 0;
   let log = [];
+  let lastWinnerId = null; // 上一手的贏家，開下一手的權限固定給他
+  let autoStartTimer = null;
+  let lobbyCountdownEndsAt = null;
+  let turnTimer = null;
+  let turnDeadlineAt = null;
 
   function pushLog(msg) {
     log.push(msg);
@@ -65,6 +72,44 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     return -1;
   }
 
+  function clearAutoStartTimer() {
+    if (autoStartTimer) { clearTimeout(autoStartTimer); autoStartTimer = null; }
+    lobbyCountdownEndsAt = null;
+  }
+
+  function maybeScheduleAutoStart() {
+    if (phase !== 'lobby' || !canStart()) { clearAutoStartTimer(); return; }
+    if (autoStartTimer) return; // 已經在倒數了
+    lobbyCountdownEndsAt = Date.now() + AUTO_START_MS;
+    autoStartTimer = setTimeout(() => {
+      autoStartTimer = null;
+      lobbyCountdownEndsAt = null;
+      startHand();
+    }, AUTO_START_MS);
+  }
+
+  function clearTurnTimer() {
+    if (turnTimer) { clearTimeout(turnTimer); turnTimer = null; }
+    turnDeadlineAt = null;
+  }
+
+  // 輪到誰行動就幫他掛一個 10 秒鬧鐘，時間到了如果他還沒動，自動棄牌並繼續遊戲
+  function scheduleTurnTimer() {
+    clearTurnTimer();
+    if (!['preflop', 'flop', 'turn', 'river'].includes(phase) || turnSeat === -1) return;
+    const seatAtSchedule = turnSeat;
+    const pid = seats[seatAtSchedule];
+    turnDeadlineAt = Date.now() + TURN_TIMEOUT_MS;
+    turnTimer = setTimeout(() => {
+      turnTimer = null;
+      turnDeadlineAt = null;
+      if (turnSeat === seatAtSchedule && seats[seatAtSchedule] === pid) {
+        pushLog(`${players.get(pid)?.name ?? '玩家'} 超過 10 秒未行動，自動棄牌`);
+        handleAction(pid, 'fold');
+      }
+    }, TURN_TIMEOUT_MS);
+  }
+
   function sit(id, name, seat) {
     const p = ensurePlayer(id, name);
     if (seats[seat] || p.seat !== null) return;
@@ -73,6 +118,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     p.seat = seat;
     p.spectating = false;
     pushLog(`${p.name} 坐上了 ${seat + 1} 號位`);
+    maybeScheduleAutoStart();
     broadcast();
   }
 
@@ -87,6 +133,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     p.seat = null;
     p.spectating = true;
     pushLog(`${p.name} 離開座位`);
+    maybeScheduleAutoStart();
     broadcast();
   }
 
@@ -108,6 +155,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
 
   function startHand() {
     if (!canStart()) return;
+    clearAutoStartTimer();
     handNumber++;
     deck = freshDeck();
     community = [];
@@ -155,6 +203,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     if (turnSeat === -1) turnSeat = nextSeatFrom(bbSeat, p => !p.folded);
 
     pushLog(`— 第 ${handNumber} 手開始 —`);
+    scheduleTurnTimer();
     broadcast();
   }
 
@@ -197,6 +246,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     const p = players.get(id);
     if (!p || p.seat === null || p.seat !== turnSeat) return;
     if (!['preflop', 'flop', 'turn', 'river'].includes(phase)) return;
+    clearTurnTimer();
 
     const toCall = currentBet - p.committed;
 
@@ -252,6 +302,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     const pending = new Set(stillToAct.map(pl => pl.id));
     const next = nextSeatFrom(turnSeat, pl => pending.has(pl.id));
     turnSeat = next !== -1 ? next : stillToAct[0].seat;
+    scheduleTurnTimer();
     broadcast();
   }
 
@@ -261,6 +312,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       winner.chips += pot;
       pushLog(`${winner.name} 獲得底池 ${pot}（其他玩家皆棄牌）`);
       grantZimucheIfNeeded(winner);
+      lastWinnerId = winner.id;
     }
     pot = 0;
     endHand();
@@ -285,6 +337,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       return;
     }
     turnSeat = nextSeatFrom(dealerSeat, canAct);
+    scheduleTurnTimer();
     broadcast();
   }
 
@@ -320,7 +373,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
     }));
     const results = [];
 
-    for (const potTier of pots) {
+    for (const [tierIndex, potTier] of pots.entries()) {
       const eligible = revealed.filter(r => potTier.eligible.some(e => e.id === r.id));
       if (eligible.length === 0) continue;
       let winners = [eligible[0]];
@@ -338,6 +391,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
         const p = players.get(w.id);
         p.chips += share + (idx === 0 ? remainder : 0);
       });
+      if (tierIndex === 0) lastWinnerId = ordered[0].id; // 主池贏家拿到開下一手的權限
       results.push({
         amount: potTier.amount,
         winners: winners.map(w => w.name),
@@ -360,14 +414,18 @@ export function createGame({ onState, onPrivateCards, onLog }) {
   }
 
   function endHand() {
+    clearTurnTimer();
     for (const p of players.values()) {
       if (p.seat !== null && p.chips <= 0) {
         pushLog(`${p.name} 籌碼歸零，退回觀戰`);
         seats[p.seat] = null; p.seat = null; p.spectating = true;
       }
     }
+    // 上一手的贏家如果已經不在場上（斷線/離桌/被淘汰），開局權限就沒人固定，交還給任何人手動開始
+    if (lastWinnerId && !seatedPlayers().some(p => p.id === lastWinnerId)) lastWinnerId = null;
     phase = 'lobby';
     turnSeat = -1;
+    maybeScheduleAutoStart();
     broadcast();
   }
 
@@ -392,6 +450,7 @@ export function createGame({ onState, onPrivateCards, onLog }) {
       }),
       spectators: [...players.values()].filter(p => p.spectating).map(p => ({ id: p.id, name: p.name })),
       canStart: canStart(),
+      lobbyCountdownEndsAt, turnDeadlineAt, starterAuthorityId: lastWinnerId,
       ...extra,
     };
   }

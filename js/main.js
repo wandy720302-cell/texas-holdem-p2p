@@ -16,6 +16,7 @@ let myName = '';
 let currentState = null;
 let myHoleCards = [];
 let lastPhase = 'lobby';
+let lastLogSignature = '';
 
 // ---------- 規則彈窗 ----------
 function openRules() { $('#rulesModal').classList.remove('hidden'); }
@@ -153,7 +154,12 @@ function render() {
   if (s.phase === 'lobby' && lastPhase !== 'lobby') myHoleCards = [];
   lastPhase = s.phase;
 
-  $('#handInfo').textContent = `第 ${s.handNumber} 手 ・ ${PHASE_LABEL[s.phase] || s.phase}`;
+  let handInfoText = `第 ${s.handNumber} 手 ・ ${PHASE_LABEL[s.phase] || s.phase}`;
+  if (s.phase === 'lobby' && s.lobbyCountdownEndsAt) {
+    const secs = Math.max(0, Math.ceil((s.lobbyCountdownEndsAt - Date.now()) / 1000));
+    handInfoText += ` ・ ${secs} 秒後自動開始`;
+  }
+  $('#handInfo').textContent = handInfoText;
   $('#potLabel').textContent = `底池：${s.pot}`;
 
   const communityEl = $('#community');
@@ -184,6 +190,11 @@ function render() {
       const betChip = p.committed > 0 ? `<div class="bet-chip">${p.committed}</div>` : '';
       const dealerMark = i === s.dealerSeat ? '<div class="dealer-btn">D</div>' : '';
       const status = p.allIn ? '（全下）' : p.folded ? '（棄牌）' : !p.connected ? '（斷線）' : '';
+      let turnTimerHtml = '';
+      if (i === s.turnSeat && s.turnDeadlineAt) {
+        const secs = Math.max(0, Math.ceil((s.turnDeadlineAt - Date.now()) / 1000));
+        turnTimerHtml = `<div class="turn-timer">⏱ ${secs}s</div>`;
+      }
       div.innerHTML = `
         ${dealerMark}
         <div class="avatar" style="background:${avatarColor(p.name)}">${initials(p.name)}</div>
@@ -191,6 +202,7 @@ function render() {
         <div class="chips">💰 ${p.chips}</div>
         ${zm}
         ${betChip}
+        ${turnTimerHtml}
       `;
     }
     seatsEl.appendChild(div);
@@ -208,8 +220,10 @@ function render() {
     seatControls.appendChild(btn);
   }
   const startBtn = $('#startHandBtn');
-  if (isHost && s.phase === 'lobby' && s.canStart) {
+  const iAmStarter = s.starterAuthorityId ? s.starterAuthorityId === myId : isHost;
+  if (s.phase === 'lobby' && s.canStart && iAmStarter) {
     startBtn.classList.remove('hidden');
+    startBtn.textContent = s.lobbyCountdownEndsAt ? '提前開始這一手' : '開始這一手';
     startBtn.onclick = submitStart;
   } else {
     startBtn.classList.add('hidden');
@@ -228,7 +242,9 @@ function render() {
     const betAmount = $('#betAmount');
     const minTarget = s.currentBet + (s.minRaise || 100);
     betAmount.min = minTarget;
-    if (!betAmount.value || Number(betAmount.value) < minTarget) betAmount.value = minTarget;
+    if (document.activeElement !== betAmount && (!betAmount.value || Number(betAmount.value) < minTarget)) {
+      betAmount.value = minTarget;
+    }
     betAmount.max = mySeatInfo.chips + mySeatInfo.zimuche * 100 + mySeatInfo.committed;
     $('#betBtn').textContent = s.currentBet > 0 ? '加注到' : '下注';
 
@@ -237,7 +253,9 @@ function render() {
       zimucheRow.classList.remove('hidden');
       const zimucheInput = $('#zimucheInput');
       zimucheInput.max = mySeatInfo.zimuche;
-      if (Number(zimucheInput.value) > mySeatInfo.zimuche) zimucheInput.value = mySeatInfo.zimuche;
+      if (document.activeElement !== zimucheInput && Number(zimucheInput.value) > mySeatInfo.zimuche) {
+        zimucheInput.value = mySeatInfo.zimuche;
+      }
     } else {
       zimucheRow.classList.add('hidden');
       $('#zimucheInput').value = 0;
@@ -246,13 +264,21 @@ function render() {
     controls.classList.add('hidden');
   }
 
-  // 紀錄
+  // 紀錄（內容沒變就不要一直把捲軸拉回底部，不然使用者往上看歷史紀錄會一直被拉走）
   const logEl = $('#log');
-  logEl.innerHTML = s.log.map(l => `<div>${escapeHtml(l)}</div>`).join('');
-  logEl.scrollTop = logEl.scrollHeight;
+  const logSignature = s.log.join('\n');
+  if (logSignature !== lastLogSignature) {
+    lastLogSignature = logSignature;
+    logEl.innerHTML = s.log.map(l => `<div>${escapeHtml(l)}</div>`).join('');
+    logEl.scrollTop = logEl.scrollHeight;
+  }
 
   updateBossHud(myTurn, mySeatInfo, s);
 }
+
+// 每半秒重繪一次，純粹是為了讓倒數計時的秒數會跳動；遊戲狀態本身沒有變，
+// 上面 render() 裡的各種 guard（focus 中的輸入框、log 內容比對）確保這不會打斷使用者操作。
+setInterval(() => { if (currentState) render(); }, 500);
 
 function zimucheWanted() {
   return Math.max(0, Math.floor(Number($('#zimucheInput').value) || 0));
