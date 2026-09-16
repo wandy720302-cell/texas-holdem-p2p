@@ -1,0 +1,132 @@
+:root {
+  color-scheme: dark;
+  --bg: #0e1512;
+  --felt: #0b3d2e;
+  --felt-edge: #062a1f;
+  --panel: #16211c;
+  --text: #eaf3ee;
+  --muted: #9db3a8;
+  --accent: #d4af37;
+  --danger: #c0392b;
+  --card-bg: #fdfdfb;
+}
+* { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  min-height: 100vh;
+}
+.hidden { display: none !important; }
+
+.screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.card-panel {
+  background: var(--panel); border-radius: 16px; padding: 28px 24px;
+  max-width: 380px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+}
+.card-panel h1 { margin: 0 0 4px; font-size: 1.4rem; }
+.sub { color: var(--muted); font-size: .85rem; margin: 0 0 20px; }
+label { display: block; font-size: .8rem; color: var(--muted); margin: 12px 0 4px; }
+input {
+  width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2a3830;
+  background: #0f1815; color: var(--text); font-size: 1rem;
+}
+.row { margin-top: 14px; }
+button {
+  cursor: pointer; border: none; border-radius: 8px; padding: 7px 12px;
+  background: #24352c; color: var(--text); font-size: .85rem;
+}
+button.primary { background: var(--accent); color: #1a1a12; font-weight: 700; }
+button.danger { background: var(--danger); color: #fff; }
+button.tiny { padding: 4px 10px; font-size: .75rem; }
+button.link { background: none; color: var(--accent); text-decoration: underline; padding: 4px; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.divider { text-align: center; color: var(--muted); margin: 16px 0 4px; font-size: .8rem; }
+.hint { min-height: 20px; color: #e67e22; font-size: .85rem; }
+
+.table-screen { display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 12px; background: var(--panel); font-size: clamp(.62rem, 2.2vw, .78rem);
+  flex-wrap: wrap; gap: 4px; row-gap: 2px;
+}
+.table-wrap { display: flex; justify-content: center; padding: clamp(6px, 2vw, 14px) 8px 0; }
+.poker-table {
+  position: relative; width: min(88vw, 62vh, 560px); height: min(52vw, 38vh, 320px);
+  background: radial-gradient(ellipse at center, var(--felt) 0%, var(--felt-edge) 100%);
+  border: clamp(4px, 1.2vw, 7px) solid #3b2417; border-radius: 50% / 45%;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+}
+.community { display: flex; gap: 3px; margin-bottom: 6px; min-height: clamp(26px, 7vw, 40px); }
+.pot { font-weight: 700; color: var(--accent); font-size: clamp(.68rem, 2.2vw, .85rem); }
+
+.seats { position: absolute; inset: 0; }
+.seat {
+  position: absolute; width: clamp(56px, 15vw, 88px); transform: translate(-50%, -50%);
+  background: rgba(10, 20, 16, .88); border: 1px solid #2a3830; border-radius: 8px;
+  padding: 3px 5px; text-align: center; font-size: clamp(.5rem, 1.8vw, .64rem); line-height: 1.3;
+}
+.seat.empty { background: rgba(255,255,255,.05); border-style: dashed; cursor: pointer; }
+.seat.turn { border-color: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.seat.folded { opacity: .4; }
+.seat .nm { font-weight: 700; }
+.seat .chips { color: var(--accent); }
+.seat .zm { color: #7bd3c2; font-size: .92em; }
+.seat .bet-chip {
+  margin-top: 4px; background: #2a3830; border-radius: 6px; padding: 2px 6px; display: inline-block;
+}
+.dealer-btn {
+  position: absolute; top: -8px; right: -8px; background: var(--accent); color: #1a1a12;
+  border-radius: 50%; width: 18px; height: 18px; font-size: .6rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.card { width: clamp(20px, 5.5vw, 28px); height: clamp(29px, 7.8vw, 40px);
+  background: var(--card-bg); color: #111; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+  font-size: clamp(.6rem, 2vw, .75rem);
+  box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.card.red { color: #c0392b; }
+.card.back { background: repeating-linear-gradient(45deg, #1e3a5f, #1e3a5f 4px, #16304f 4px, #16304f 8px); }
+
+.my-cards { display: flex; justify-content: center; gap: clamp(4px, 2vw, 8px); margin: 8px 0; }
+.my-cards .card { width: clamp(30px, 8vw, 38px); height: clamp(43px, 11.5vw, 54px); font-size: clamp(.75rem, 2.6vw, .95rem); }
+
+.controls { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 0 10px 8px; max-width: 100vw; }
+.controls .act { min-width: 56px; padding: 6px 10px; font-size: clamp(.7rem, 2.2vw, .82rem); }
+.controls input { width: 78px; padding: 6px 8px; }
+.zimuche-row {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: .72rem; color: #7bd3c2; margin-top: 2px; flex-wrap: wrap; text-align: center;
+}
+.zimuche-row input { width: 60px; padding: 4px 6px; }
+
+.bottom-row { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 10px 14px; }
+#seatControls { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.log {
+  width: min(94vw, 560px); max-height: 90px; overflow-y: auto; background: var(--panel);
+  border-radius: 8px; padding: 6px 10px; font-size: .7rem; color: var(--muted);
+}
+.log div { padding: 1px 0; }
+
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex;
+  align-items: center; justify-content: center; padding: 16px; z-index: 10;
+}
+.modal-box {
+  background: var(--panel); border-radius: 14px; padding: 24px; max-width: 480px; width: 100%;
+  max-height: 80vh; overflow-y: auto;
+}
+.modal-box h3 { margin: 16px 0 6px; color: var(--accent); }
+.modal-box ul { margin: 0; padding-left: 20px; font-size: .88rem; line-height: 1.6; }
+
+@media (max-width: 360px) {
+  .seat .zm { display: none; } /* 空間太小，子母車數字先讓給籌碼顯示 */
+  .card-panel { padding: 20px 16px; }
+}
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .poker-table { width: min(70vw, 48vh, 460px); height: min(42vw, 30vh, 240px); }
+  .my-cards .card { width: clamp(26px, 6vw, 34px); height: clamp(37px, 8.6vw, 48px); }
+}
