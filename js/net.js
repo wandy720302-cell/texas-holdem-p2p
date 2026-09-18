@@ -88,14 +88,17 @@ export function createNet({ onMessage, onStatus, onPeersChanged }) {
 
   // 手機用行動網路時常常躲在電信級 NAT（CGNAT）後面，光靠 STUN 打洞打不穿，
   // 這時候唯一能連上的辦法是找一台 TURN 伺服器幫忙轉發封包。
-  // 這組是 Open Relay Project 公開提供的免費測試帳號（metered.ca），沒有金鑰外洩疑慮。
+  // 這組是使用者自己在 metered.ca 申請的專屬 TURN 帳號（不是共用的公開 demo 帳密，
+  // 之前用共用帳密在跨網路/行動數據情境下常常連不上，換成專屬額度後應該會穩很多）。
+  const TURN_USER = '3f169ebf85826a9980e8bc49';
+  const TURN_CRED = 'm/jWwMGqbNRnusI/';
   const ICE_CONFIG = {
     iceServers: [
       { urls: 'stun:stun.relay.metered.ca:80' },
-      { urls: 'turn:global.relay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:global.relay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:global.relay.metered.ca:80', username: TURN_USER, credential: TURN_CRED },
+      { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: TURN_USER, credential: TURN_CRED },
+      { urls: 'turn:global.relay.metered.ca:443', username: TURN_USER, credential: TURN_CRED },
+      { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: TURN_USER, credential: TURN_CRED },
     ],
   };
 
